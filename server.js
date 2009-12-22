@@ -38,13 +38,22 @@ var clients = {};
 //                handler of httpServer.
 var handlers = [];
 
+// Helper extension to ServerResponse to handle one-off responses which also
+// disables chunked encoding by setting the content-length header. Finishes
+// the response.
+http.ServerResponse.prototype.sendStaticBody = function(statusCode, headers, data) {
+  headers['Content-length'] = data.length;
+  this.sendHeader(statusCode, headers);
+  this.sendBody(data);
+  this.finish();
+}
+
 // Handles /status
 handlers.push({ 
   regex: /\/status\/.*/,
   handler: function(req, res) {
-    res.sendHeader(200, {'Content-type': 'text/plain'});
-    res.sendBody('Status: All Good');
-    res.finish();
+    var response = "Status: All Good";
+    res.sendStaticBody(200, { 'Content-type': 'text/plain' }, response);
   }
 });
 
@@ -56,54 +65,52 @@ handlers.push({
 
     // Make sure the client exists/connected
     if (clients[id] == undefined) {
-      res.sendHeader(404, {'Content-type': 'text/plain'});
-      res.sendBody('404 - Document not found');
-      res.finish();
+      var response = '404 Not Found';
+      res.sendStaticBody(404, { 'Content-type': 'text/plain' }, response);
       return;
     }
 
     // If this is a post request, actually perform the action
     if (req.method == 'POST') {
       clearTimeout(clients[id].timeout);
-      clients[id].response.sendHeader(200, 
-                                      { 'Content-type': 'text/json',
-                                        'Content-length': 25 });
-      clients[id].response.sendBody('{ "status": "ok", "action": "water" }');
-      clients[id].response.finish();
+
+      var response = '{ "status": "ok", "action": "water" }';
+      clients[id].response.sendStaticBody(200, { 'Content-type': 'text/json' }, response);
+
       delete clients[id];
 
       // Tell the client we succeeded
       // TODO: Make a nice webpage
-      res.sendHeader(200, { 'Content-type': 'text/html' });
-      res.sendBody('<html><h3>OK</h3></html>');
-      res.finish();
+      response = '<html><h3>OK</h3></html>';
+      res.sendStaticBody(200, { 'Content-type': 'text/html' }, response);
       return;
     }
 
     // If this is a get request, display a form that the user can
     // Post the action to.
     // TODO: Make a nice webpage
-    res.sendHeader(200, { 'Content-type': 'text/html' });
-    res.sendBody('<html><form name="water" method="post"><button name="water">Water</button></form></html>');
-    res.finish();  
+    var response = 
+      '<html><form name="water" method="post"><button name="water">Water</button></form></html>';
+    res.sendStaticBody(200, { 'Content-type': 'text/html' }, response);
   }
 });
 
 // Handles client (arduino) connections
 handlers.push({ 
-  regex: /\/client\/connect\/\d+/,
+  regex: /\/client\/connect\/\S+\//,
   handler: function(req, res) {
+    // Client-assigned id
     client_id = req.uri.path.split('/')[3];
 
-    // Construct the Client ID
+    // Construct the internal client id
     id = req.connection.remoteAddress + ':' + client_id;
     sys.debug('Client connected: ' + id);
 
     // If this arduino board has already connected, tell them to bugger off
     if( clients[id] != undefined ) {
-      res.sendHeader(200, { 'Content-type': 'text/json' });
-      res.sendBody('{ "status": "error", "error": "duplicate", "msg": "client already connected with that id" }');
-      res.finish();
+      var response = 
+        '{ "status": "error", "error": "duplicate", "msg": "client already connected with that id" }';
+      res.sendStaticBody(200, { 'Content-type': 'text/json' }, response);
       return;
     }
     
@@ -117,10 +124,8 @@ handlers.push({
           sys.debug('Client timed out: ' + id);
           delete clients[id];
 
-          res.sendHeader(200, { 'Content-type': 'text/json',
-                'Content-length': 36 });
-          res.sendBody('{ "status": "timeout", "msg": "connection timed out" }');
-          res.finish();
+          var response = '{ "status": "timeout", "msg": "connection timed out" }';
+          res.sendStaticBody(200, { 'Content-type': 'text/json' }, response);
         }, client_timeout)
     };
 
@@ -168,9 +173,8 @@ http.createServer(
 
     // If any handler doesn't succeed, treat it as a 404.  Add a handler for
     // the / url to remove the 404 on an empty url
-    res.sendHeader(404, {'Content-type': 'text/plain'});
-    res.sendBody('404: Document not Found');
-    res.finish();
+    var response = '404 Not Found';
+    res.sendStaticBody(404, { 'Content-type': 'text/plain' }, response);
   }
 
 ).listen(server_port);
