@@ -7,11 +7,11 @@
 
 // Default settings
 var server_port = 8003;
+var client_timeout = 10000;
 
 // Imports
 var sys = require('sys'),
    http = require('http');
-
 
 // The client ID is a colon-separated tuple of the client's IP address and 
 // the self-assigned ID of the client.  For example: an arduino board 
@@ -121,7 +121,7 @@ handlers.push({
                 'Content-length': 36 });
           res.sendBody('{ "status": "timeout", "msg": "connection timed out" }');
           res.finish();
-        }, 10000)
+        }, client_timeout)
     };
 
     // Handle the case of the client disconnecting for whatever reason
@@ -147,6 +147,10 @@ while (process.ARGV.length > 0) {
   case '-p':
   case '--port':
     server_port = parseInt(process.ARGV.shift());
+    break;
+  case '-t':
+  case '--timeout':
+    client_timeout = parseInt(process.ARGV.shift()) * 1000;
     break;
   }
 }
@@ -179,3 +183,5 @@ process.addListener('SIGINT', function() {
 
 // Informative statement about server status
 sys.puts('Server running at http://localhost:' + server_port + '/');
+sys.puts('Clients have a ' + client_timeout/1000 + ' second timeout.');
+
