@@ -12,3 +12,17 @@ node.js		http://www.node.js
 pyserial	http://pyserial.sourceforge.net/
 arduino		http://www.arduino.cc
 
+== URLs ==
+
+As stated, this project tries to use a REST interface.  Here are the URLs that are
+recognized:
+
+/client/connect/{client-id}/
+ - 'GET' registers an arduino board when it is OK to receive commands
+
+/control/{ip}:{cliend-id}/water 
+ - 'GET' displays a form for confirmation
+ - 'POST' tells the arduino board with the given ID connected to IP to do the 'water' action
+
+/status/ - Generic status page.
+  
