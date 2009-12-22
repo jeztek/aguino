@@ -1,0 +1,14 @@
+=== Aguino ===
+
+This project uses node.js and pyserial to enable control of a plant watering 
+device using a HTTP REST interface.
+
+Authors:
+Ted Morse
+Eric Park
+
+Dependencies:
+node.js		http://www.node.js
+pyserial	http://pyserial.sourceforge.net/
+arduino		http://www.arduino.cc
+
