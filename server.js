@@ -161,7 +161,7 @@ while (process.ARGV.length > 0) {
 }
 
 // Create the server
-http.createServer(
+var server = http.createServer(
 
   // Default request handler. Passes the actual request to whatever handler's
   // regex property first passes the test on the URI
@@ -177,12 +177,14 @@ http.createServer(
     res.sendStaticBody(404, { 'Content-type': 'text/plain' }, response);
   }
 
-).listen(server_port);
+);
+
+server.listen(server_port);
 
 // Handle Ctrl-C nicely
 process.addListener('SIGINT', function() {
   sys.puts('Server exiting...');
-  process.exit(); 
+  server.close();
 });
 
 // Informative statement about server status
