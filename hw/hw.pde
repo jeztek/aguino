@@ -6,13 +6,15 @@ int servoPin = 7;
 
 Servo water_servo;
 
-#define VALVE_CLOSED 159
+#define VALVE_CLOSED 155
 #define VALVE_OPEN 90
 
 void setup() {
   pinMode(ledPin, OUTPUT);
   
   water_servo.attach(servoPin);
+  water_servo.write(VALVE_CLOSED + 10);
+  delay(500);
   water_servo.write(VALVE_CLOSED);
   
   Serial.begin(9600); 
@@ -29,9 +31,11 @@ void loop() {
       digitalWrite(ledPin, HIGH);
       Serial.print(".");
     } else if (inByte == 'C') {
-      water_servo.write(VALVE_CLOSED);
-      digitalWrite(ledPin, LOW);      
+      water_servo.write(VALVE_CLOSED + 10);
+      delay(750);
+      digitalWrite(ledPin, LOW);
       Serial.print(".");
+      water_servo.write(VALVE_CLOSED);
     }
   }
 }
