@@ -70,13 +70,12 @@ def loop(manager, url):
 	manager.request(url, AguinoConsumer())
 	while manager.poll(1):
 		pass
-	loop(manager, url)
 	
 def main():
-	import sys
 	manager = AsyncHttpManager(max_connections=1, max_time=60, \
-							   max_size=1000000)
-	loop(manager, SERVER_URL + "/" + str(ARDUINO_ID) + "/")
+                                           max_size=1000000)
+        while True:
+                loop(manager, SERVER_URL + "/" + str(ARDUINO_ID) + "/")
 	
 if __name__ == "__main__":
 	main()
