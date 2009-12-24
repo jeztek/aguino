@@ -1,18 +1,24 @@
-import serial, json
+import serial, time
+
+try:
+        import json
+except ImportError:
+        import simplejson as json
+
 from async_http import AsyncHttpManager, AsyncConsumer
 
 ARDUINO_ID		= 12345
 
 # Serial
-SERIAL_PORT		= "/dev/tty.usbserial-A6008jjv"
+SERIAL_PORT		= "/dev/cu.usbserial-A6008jjv"
 SERIAL_SPEED	= 9600
-SERIAL_COMMAND	= "A"
+
+SERIAL_COMMAND_OPEN = "O"
+SERIAL_COMMAND_CLOSE = "C"
 
 # Server
 SERVER_URL		= "http://localhost:8003/client/connect"
 SERVER_COMMAND	= "{ \"status\": \"ok\", \"action\": \"water\" }"
-
-
 
 class AguinoSerial():
 	def scan(self):
@@ -28,10 +34,19 @@ class AguinoSerial():
 
 	def connect(self, port=SERIAL_PORT, baud=SERIAL_SPEED):
 		try:
+                        print "Sending command to serial port"
 			ser = serial.Serial(port, baud)
-			print ser.readline()
-			ser.write(SERIAL_COMMAND)
+
+                        # Wait for the arduino to initialize
+			print ser.readline(),
+
+			ser.write(SERIAL_COMMAND_OPEN)
 			print ser.read()
+
+                        time.sleep(5)
+                        ser.write(SERIAL_COMMAND_CLOSE)
+                        print ser.read()
+
 			ser.close()
 		except serial.SerialException:
 			print "Ack!"
